@@ -1,0 +1,291 @@
+import React, { useEffect, useState } from 'react';
+import {
+    FlatList,
+    StyleSheet,
+    View,
+} from 'react-native';
+import {
+    Button,
+    Card,
+    Text,
+    TextInput,
+    Portal,
+    Modal,
+} from 'react-native-paper';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface Subscription {
+    _id: string;
+    name: string;
+    price: number;
+    duration: string;
+}
+
+const STORAGE_KEY = '@userData';
+
+export default function SubscriptionsScreen() {
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const [visible, setVisible] = useState(false);
+
+    const [planName, setPlanName] = useState('');
+    const [price, setPrice] = useState('');
+    const [duration, setDuration] = useState('');
+
+    // ✅ Load from AsyncStorage
+    const loadPlans = async () => {
+        try {
+            const data = await AsyncStorage.getItem(STORAGE_KEY);
+
+            if (data) {
+                const parsed = JSON.parse(data);
+
+                const plans = parsed?.data?.plans || [];
+
+                setSubscriptions(plans);
+
+                console.log(plans);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    useEffect(() => {
+        loadPlans();
+        console.log(planName)
+    }, []);
+
+    // ✅ Save back to storage
+    const savePlans = async (newPlans: Subscription[]) => {
+        const data = await AsyncStorage.getItem(STORAGE_KEY);
+
+        if (!data) return;
+
+        const parsed = JSON.parse(data);
+
+        const updated = {
+            ...parsed,
+            plans: newPlans,
+        };
+
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    };
+    const getUserData = async () => {
+        try {
+            const storedAuth = await AsyncStorage.getItem(STORAGE_KEY);
+
+            if (storedAuth) {
+                const parsedData = JSON.parse(storedAuth);
+
+                const data = parsedData;
+
+                // console.log('User ID:', userId);
+
+                return data;
+            }
+
+            return null;
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    // ✅ Add Plan
+    const handleAddPlan = async () => {
+
+        try {
+            const data = await getUserData();
+
+            const res = await fetch(`http://192.168.29.218:8000/owner/addPlan/${data.data._id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: planName, price, days: duration
+                })
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+        const newPlan = {
+            name: planName,
+            price: Number(price),
+            duration: Number(duration),
+        };
+
+        const updated = [...subscriptions, newPlan];
+
+        setSubscriptions(updated);
+        await savePlans(updated);
+
+        setVisible(false);
+        setPlanName('');
+        setPrice('');
+        setDuration('');
+    };
+
+    // ✅ Delete Plan
+    const handleDelete = async (id: string) => {
+        try {
+            const data = await getUserData();
+
+            const res = await fetch(`http://192.168.29.218:8000/owner/delete-plan/${data.data._id}/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+            const updated = subscriptions.filter((s) => s._id !== id);
+            setSubscriptions(updated);
+            await savePlans(updated);
+        } catch (error) {
+            console.log(error)
+        }
+    };
+
+    const renderSubscription = ({ item }: { item: Subscription }) => (
+        <Card style={styles.subCard}>
+            <Card.Content>
+                <Text variant="titleMedium">{item.name}</Text>
+
+                <View style={styles.details}>
+                    <Text style={styles.price}>₹{item.price}</Text>
+                    <Text style={styles.duration}>{item.duration} days</Text>
+
+                </View>
+            </Card.Content>
+
+            <Card.Actions>
+                <Button onPress={() => handleDelete(item._id)}>Delete</Button>
+            </Card.Actions>
+        </Card>
+    );
+
+    return (
+        <View style={styles.container}>
+            {/* ADD BUTTON */}
+            <Button
+                mode="contained"
+                style={styles.addButton}
+                onPress={() => setVisible(true)}
+            >
+                Add Plan
+            </Button>
+
+            {/* LIST */}
+            <FlatList
+                data={subscriptions}
+                renderItem={renderSubscription}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.list}
+            />
+
+            {/* MODAL FORM */}
+            <Portal>
+                <Modal
+                    visible={visible}
+                    onDismiss={() => setVisible(false)}
+                    contentContainerStyle={styles.modal}
+                >
+                    <Text style={styles.modalTitle}>Create Plan</Text>
+
+                    <TextInput
+                        label="Plan Name"
+                        value={planName}
+                        onChangeText={setPlanName}
+                        style={styles.input}
+                    />
+
+                    <TextInput
+                        label="Price"
+                        value={price}
+                        keyboardType="numeric"
+                        onChangeText={setPrice}
+                        style={styles.input}
+                    />
+
+                    <TextInput
+                        label="Duration (days)"
+                        value={duration}
+                        keyboardType="numeric"
+                        onChangeText={setDuration}
+                        style={styles.input}
+                    />
+
+                    <Button
+                        mode="contained"
+                        onPress={handleAddPlan}
+                        style={styles.saveBtn}
+                    >
+                        Save Plan
+                    </Button>
+                </Modal>
+            </Portal>
+        </View>
+    );
+}
+
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#1a1a1a',
+        padding: 16,
+    },
+
+    addButton: {
+        marginBottom: 16,
+        backgroundColor: '#FF6347',
+    },
+
+    list: {
+        paddingBottom: 20,
+    },
+
+    subCard: {
+        backgroundColor: '#2a2a2a',
+        marginBottom: 12,
+    },
+
+    details: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 12,
+    },
+
+    price: {
+        color: '#FF6347',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+
+    duration: {
+        color: '#aaa',
+    },
+
+    modal: {
+        backgroundColor: '#1e1e1e',
+        padding: 20,
+        margin: 20,
+        borderRadius: 12,
+    },
+
+    modalTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 12,
+    },
+
+    input: {
+        marginBottom: 12,
+        backgroundColor: '#2a2a2a',
+    },
+
+    saveBtn: {
+        marginTop: 8,
+        backgroundColor: '#FF6347',
+    },
+});
