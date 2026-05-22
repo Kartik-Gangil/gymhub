@@ -10,12 +10,14 @@ import {
     SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuthStore } from '@/lib/auth-store';
 
 export default function GymListingScreen() {
-   
+
     const [search, setSearch] = useState('');
     const [gyms, setGyms] = useState([])
-
+    const { signOut } = useAuthStore();
     useEffect(() => {
         loadGym()
     }, [])
@@ -28,22 +30,22 @@ export default function GymListingScreen() {
         try {
             const data = await fetch("http://192.168.29.218:8000/view", {
                 method: "GET",
-                headers:{
-                    "Content-Type" : "application/json"
+                headers: {
+                    "Content-Type": "application/json"
                 }
             })
             const gym = await data.json();
-            console.log(gym.data)
-            setGyms(gym.data)
+            // console.log(gym.gyms)
+            setGyms(gym.gyms)
         } catch (error) {
             console.log(error)
         }
     }
 
-    const renderGymCard = ({ item }: any) => (
-        <View style={styles.card}>
+    const renderGymCard = ({ item , index }: any) => (
+        <View style={styles.card} key={index}>
             <View style={styles.imageContainer}>
-                <Image source={{ uri: item.image }} style={styles.image} />
+                <Image source={{ uri: item.logo ? item.logo :item.cover }} style={styles.image} />
 
                 <View style={styles.ratingBadge}>
                     <Text style={styles.ratingText}>⭐ {item.rating}</Text>
@@ -63,7 +65,14 @@ export default function GymListingScreen() {
                         </Text>
                     </View>
 
-                    <TouchableOpacity style={styles.button}>
+
+                    <TouchableOpacity style={styles.button}
+                        onPress={() => router.push({
+                            pathname: '/member/gymDetail',
+                            params: {
+                                gymId: item.id
+                            }
+                        })}>
                         <Text style={styles.buttonText}>View Gym</Text>
                     </TouchableOpacity>
                 </View>
@@ -75,16 +84,18 @@ export default function GymListingScreen() {
         <SafeAreaView style={styles.container}>
             <FlatList
                 data={filteredGyms}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item) => item.id}
                 renderItem={renderGymCard}
                 contentContainerStyle={styles.listContent}
                 ListHeaderComponent={
                     <>
                         <View style={styles.header}>
-                            <Text style={styles.heading}>
+                            {/* <Text style={styles.heading}>
                                 Explore Gyms
-                            </Text>
-
+                            </Text> */}
+                            {/* <Text onPress={
+                                signOut()
+                            }>Logout</Text> */}
                             <Text style={styles.subHeading}>
                                 Find the best gyms near you and start your
                                 fitness journey.
@@ -128,7 +139,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#09090b',
-        paddingTop: 60
     },
 
     listContent: {

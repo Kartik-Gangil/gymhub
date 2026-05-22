@@ -25,46 +25,30 @@ export default function MemberLayout() {
         name="index"
         options={{
           title: 'Explore Gyms',
-          href: null
+          headerLeft: () => (
+            <MaterialCommunityIcons
+              name="compass"
+              size={24}
+              color="#fff"
+              style={{ marginLeft: 15 }}
+            />
+          ),
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="compass" size={24} color={color} />
+          ),
         }}
+
+      />
+      <Tabs.Screen
+        name="gymDetail"
+        options={{
+          title: 'Gym Detail',
+          href: null,
+          headerShown: false,
+        }}
+
       />
 
-      <Tabs.Screen
-        name="subscription"
-        options={{
-          title: 'Subscription',
-          tabBarLabel: 'Subscription',
-          headerLeft: () => (
-            <MaterialCommunityIcons
-              name="credit-card"
-              size={24}
-              color="#fff"
-              style={{ marginLeft: 15 }}
-            />
-          ),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="credit-card" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="workout"
-        options={{
-          title: 'Workouts',
-          tabBarLabel: 'Workouts',
-          headerLeft: () => (
-            <MaterialCommunityIcons
-              name="dumbbell"
-              size={24}
-              color="#fff"
-              style={{ marginLeft: 15 }}
-            />
-          ),
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="dumbbell" size={24} color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen
         name="dashboard"
         options={{
@@ -83,7 +67,61 @@ export default function MemberLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
+        name="subscription"
+        options={{
+          title: 'Subscription',
+          tabBarLabel: 'Subscription',
+          // headerLeft: () => (
+          //   <MaterialCommunityIcons
+          //     name="credit-card"
+          //     size={24}
+          //     color="#fff"
+          //     style={{ marginLeft: 15 }}
+          //   />
+          // ),
+          headerShown: false,
+          href: null,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="credit-card" size={24} color={color} />
+          ),
+        }}
+      />
+      {/* <Tabs.Screen
+        name="workout"
+        options={{
+          title: 'Workouts',
+          tabBarLabel: 'Workouts',
+          headerLeft: () => (
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={24}
+              color="#fff"
+              style={{ marginLeft: 15 }}
+            />
+          ),
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="dumbbell" size={24} color={color} />
+          ),
+        }}
+      /> */}
+      <Tabs.Screen
+        name="workout"
+        options={{
+          title: 'Workouts',
+          href: null
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: 'Progress',
+          href: null
+        }}
+      />
+
+      {/* <Tabs.Screen
         name="progress"
         options={{
           title: 'Progress',
@@ -100,7 +138,7 @@ export default function MemberLayout() {
             <MaterialCommunityIcons name="chart-line" size={24} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="settings"
         options={{

@@ -4,10 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface User {
     id: string;
     email: string;
-    user_metadata: {
-        full_name?: string;
-        phone?: string;
-    };
+    username?: string;
+    phone?: string;
+    membership?: []
 }
 
 interface AuthStore {
@@ -95,10 +94,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
             const user: User = {
                 id: data.user._id,
                 email: data.user.email,
-                user_metadata: {
-                    full_name: data.user.name,
-                    phone: data.user.phone,
-                },
+                username: data.user.name,
+                phone: data.user.phone,
+                membership: data.user.membership || []
             };
 
             const session = {
@@ -154,15 +152,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
             // MOCK LOGIN
             const user: User = {
-                id: data.user.id,
-                email,
-                user_metadata: {
-                    full_name: data.user.fullName,
-                    phone: data.user.phone,
-                },
+                id: data.user._id,
+                email: data.user.email,
+                username: data.user.name,
+                phone: data.user.phone,
+                membership: data.user.membership || []
             };
-
-            const role = data.role;
 
             const session = {
                 access_token: data.token,
@@ -170,7 +165,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
             const authData = {
                 user,
-                role,
+                role: data.user.role,
                 session,
             };
 
@@ -181,7 +176,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
             set({
                 user,
-                role,
+                role: data.user.role,
                 session,
             });
         } catch (error) {

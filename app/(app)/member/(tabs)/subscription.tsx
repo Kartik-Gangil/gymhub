@@ -1,100 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, FlatList } from 'react-native';
-import { Text, Card, Button } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import {
+    ScrollView,
+    StyleSheet,
+    View,
+    ActivityIndicator,
+    TouchableOpacity,
+} from 'react-native';
+
+import { Text, Card } from 'react-native-paper';
 import { useAuthStore } from '../../../../lib/auth-store';
+import { router } from 'expo-router';
 
-interface Plan {
-    id: string;
-    plan_name: string;
-    price: number;
-    duration_days: number;
-}
-
-interface MemberSubscription {
-    id: string;
-    plan_name: string;
+interface Membership {
+    _id: string;
     status: string;
-    end_date: string;
+    endDate: string;
+
+    gym: {
+        _id: string;
+        name: string;
+    };
+
+    plan: {
+        name: string;
+        price: string;
+        days: string;
+    };
 }
 
-const MOCK_PLANS: Plan[] = [
-    { id: '1', plan_name: 'Basic', price: 29, duration_days: 30 },
-    { id: '2', plan_name: 'Premium', price: 59, duration_days: 30 },
-    { id: '3', plan_name: 'Elite (Annual)', price: 499, duration_days: 365 },
-];
+interface Gym {
+    _id: string;
+    name: string;
 
-const MOCK_CURRENT_SUB: MemberSubscription = {
-    id: 'sub-1',
-    plan_name: 'Premium Plan',
-    status: 'active',
-    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-};
+    plans: {
+        _id: string;
+        name: string;
+        price: string;
+        days: string;
+    }[];
+}
 
 export default function SubscriptionScreen() {
     const { user } = useAuthStore();
-    const [currentSub, setCurrentSub] = useState<MemberSubscription | null>(null);
-    const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+
+    const [memberships, setMemberships] = useState<Membership[]>([]);
+    const [gyms, setGyms] = useState<Gym[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (user) {
-            // Load mock subscription data
-            setCurrentSub(MOCK_CURRENT_SUB);
-            setAvailablePlans(MOCK_PLANS);
+            fetchData();
         }
     }, [user]);
 
-    const handleSubscribe = (planId: string) => {
-        const plan = MOCK_PLANS.find((p) => p.id === planId);
-        if (!plan) return;
+    const fetchData = async () => {
+        try {
+            setLoading(true);
 
-        setCurrentSub({
-            id: Date.now().toString(),
-            plan_name: plan.plan_name,
-            status: 'active',
-            end_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
-        });
+            // Fetch memberships
+            const membershipResponse = await fetch(
+                `http://192.168.29.218:8000/member/user/${user.id}/memberships`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            const membershipData = await membershipResponse.json();
+
+            // Only active memberships
+            const activeMemberships =
+                membershipData.memberships.filter(
+                    (item: Membership) => item.status === 'active'
+                );
+
+            setMemberships(activeMemberships);
+
+            // Fetch gyms
+            const gymResponse = await fetch(
+                `http://192.168.29.218:8000/view/get-all-gyms`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            const gymData = await gymResponse.json();
+
+            setGyms(gymData.data || []);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const renderPlan = ({ item }: { item: Plan }) => (
-        <Card style={styles.planCard}>
-            <Card.Content>
-                <Text variant="titleMedium">{item.plan_name}</Text>
-                <View style={styles.planDetails}>
-                    <Text style={styles.price}>${item.price}</Text>
-                    <Text style={styles.duration}>{item.duration_days} days</Text>
-                </View>
-            </Card.Content>
-            <Card.Actions>
-                <Button onPress={() => handleSubscribe(item.id)}>Subscribe</Button>
-            </Card.Actions>
-        </Card>
-    );
+    if (loading) {
+        return (
+            <View style={styles.loaderContainer}>
+                <ActivityIndicator size="large" color="#FF6347" />
+
+                <Text style={styles.loadingText}>
+                    Loading subscriptions...
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container}>
-            {currentSub && (
-                <>
-                    <Text variant="headlineSmall" style={styles.title}>Current Plan</Text>
-                    <Card style={styles.currentCard}>
+            {/* ACTIVE MEMBERSHIPS */}
+            <Text style={styles.sectionTitle}>
+                Active Memberships
+            </Text>
+
+            {memberships.length > 0 ? (
+                memberships.map((membership) => (
+                    <Card
+                        key={membership._id}
+                        style={styles.membershipCard}
+                    >
                         <Card.Content>
-                            <Text variant="titleMedium">{currentSub.plan_name}</Text>
-                            <Text style={styles.status}>Status: {currentSub.status}</Text>
-                            <Text style={styles.endDate}>
-                                Expires: {new Date(currentSub.end_date).toLocaleDateString()}
+                            <Text style={styles.planName}>
+                                {membership.plan?.name}
                             </Text>
+
+                            <Text style={styles.gymName}>
+                                {membership.gym?.name}
+                            </Text>
+
+                            <Text style={styles.secondaryText}>
+                                ₹{membership.plan?.price}
+                            </Text>
+
+                            <Text style={styles.secondaryText}>
+                                Valid till{' '}
+                                {new Date(
+                                    membership.endDate
+                                ).toLocaleDateString()}
+                            </Text>
+
+                            <View style={styles.activeBadge}>
+                                <Text style={styles.badgeText}>
+                                    ACTIVE
+                                </Text>
+                            </View>
                         </Card.Content>
                     </Card>
-                </>
+                ))
+            ) : (
+                <Text style={styles.emptyText}>
+                    No active memberships
+                </Text>
             )}
 
-            <Text variant="headlineSmall" style={styles.title}>Available Plans</Text>
-            <FlatList
-                data={availablePlans}
-                renderItem={renderPlan}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-                contentContainerStyle={styles.list}
-            />
+            {/* AVAILABLE PLANS */}
+            <Text
+                style={[
+                    styles.sectionTitle,
+                    { marginTop: 30 },
+                ]}
+            >
+                Available Plans
+            </Text>
+
+            {gyms.map((gym) => (
+                <View key={gym._id} style={styles.gymSection}>
+                    <Text style={styles.gymHeading}>
+                        {gym.name}
+                    </Text>
+
+                    {gym.plans?.map((plan) => (
+                        <Card
+                            key={plan._id}
+                            style={styles.planCard}
+                        >
+                            <Card.Content>
+                                <View style={styles.row}>
+                                    <View>
+                                        <Text style={styles.planName}>
+                                            {plan.name}
+                                        </Text>
+
+                                        <Text style={styles.secondaryText}>
+                                            {plan.days} Days
+                                        </Text>
+                                    </View>
+
+                                    <Text style={styles.price}>
+                                        ₹{plan.price}
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.joinButton}
+                                    onPress={() =>
+                                        router.push({
+                                            pathname:
+                                                '/(app)/member/(tabs)/gymDetail',
+                                            params: {
+                                                gymId: gym._id,
+                                            },
+                                        })
+                                    }
+                                >
+                                    <Text style={styles.joinButtonText}>
+                                        View Gym
+                                    </Text>
+                                </TouchableOpacity>
+                            </Card.Content>
+                        </Card>
+                    ))}
+                </View>
+            ))}
         </ScrollView>
     );
 }
@@ -105,41 +227,108 @@ const styles = StyleSheet.create({
         backgroundColor: '#1a1a1a',
         padding: 16,
     },
-    title: {
+
+    loaderContainer: {
+        flex: 1,
+        backgroundColor: '#1a1a1a',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    loadingText: {
         color: '#fff',
-        marginTop: 16,
-        marginBottom: 12,
+        marginTop: 15,
     },
-    currentCard: {
+
+    sectionTitle: {
+        color: '#fff',
+        fontSize: 22,
+        fontWeight: '700',
+        marginBottom: 16,
+    },
+
+    membershipCard: {
         backgroundColor: '#2a2a2a',
-        marginBottom: 24,
+        marginBottom: 14,
+        borderRadius: 14,
     },
-    status: {
-        color: '#aaa',
-        marginTop: 8,
-    },
-    endDate: {
-        color: '#FF6347',
-        marginTop: 4,
-    },
-    list: {
-        gap: 8,
-    },
+
     planCard: {
         backgroundColor: '#2a2a2a',
-        marginBottom: 8,
+        marginBottom: 12,
+        borderRadius: 14,
     },
-    planDetails: {
+
+    gymSection: {
+        marginBottom: 25,
+    },
+
+    gymHeading: {
+        color: '#FF6347',
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 12,
+    },
+
+    planName: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+    },
+
+    gymName: {
+        color: '#aaa',
+        marginTop: 5,
+    },
+
+    secondaryText: {
+        color: '#aaa',
+        marginTop: 5,
+    },
+
+    row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 12,
+        alignItems: 'center',
     },
+
     price: {
         color: '#FF6347',
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 22,
+        fontWeight: '700',
     },
-    duration: {
+
+    activeBadge: {
+        marginTop: 14,
+        backgroundColor: '#1f7a1f',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 20,
+    },
+
+    badgeText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 12,
+    },
+
+    joinButton: {
+        marginTop: 18,
+        backgroundColor: '#FF6347',
+        paddingVertical: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+
+    joinButtonText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 15,
+    },
+
+    emptyText: {
         color: '#aaa',
+        marginBottom: 20,
     },
 });

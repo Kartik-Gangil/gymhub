@@ -16,12 +16,14 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { useAuthStore } from '@/lib/auth-store';
 
 
 const GymListPage = () => {
     const [search, setSearch] = useState('');
     const [gyms, setGyms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { signOut } = useAuthStore()
     const STORAGE_KEY = '@gymhub_auth';
     const getUserId = async () => {
         try {
@@ -32,6 +34,7 @@ const GymListPage = () => {
 
                 const userId = parsedData.user.id;
 
+                // console.log(parsedData);
                 // console.log('User ID:', userId);
 
                 return userId;
@@ -61,6 +64,8 @@ const GymListPage = () => {
                 city: gym.city,
                 members: gym.members?.length || 0,
                 plans: gym.plans?.length || 0,
+                logo: gym.logo || null,
+                cover: gym.coverImage || null,
             }));
 
             setGyms(formatted);
@@ -73,6 +78,7 @@ const GymListPage = () => {
 
     useEffect(() => {
         fetchGym();
+        // signOut();
     }, [])
 
 
@@ -87,11 +93,19 @@ const GymListPage = () => {
             <TouchableOpacity activeOpacity={0.9}>
                 <Card style={styles.card}>
                     <View style={styles.cardHeader}>
-                        <Avatar.Icon
-                            size={58}
-                            icon="dumbbell"
-                            style={styles.avatar}
-                        />
+                        {item.logo ? (
+                            <Avatar.Image
+                                size={58}
+                                source={{ uri: item.logo }}
+                                style={styles.avatar}
+                            />
+                        ) : (
+                            <Avatar.Icon
+                                size={58}
+                                icon="dumbbell"
+                                style={styles.avatar}
+                            />
+                        )}
 
                         <View style={styles.infoContainer}>
                             <Text

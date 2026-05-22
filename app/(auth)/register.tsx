@@ -20,7 +20,7 @@ export default function RegisterScreen() {
             setError('');
             setLoading(true);
             await signUp(email, password, fullName, phone, role);
-            router.replace('/(app)');
+            router.replace('/(app)/member');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Sign up failed');
         } finally {

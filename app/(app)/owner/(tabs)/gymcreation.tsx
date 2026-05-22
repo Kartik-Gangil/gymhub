@@ -5,6 +5,8 @@ import {
     View,
     TouchableOpacity,
     StatusBar,
+    Image,
+    Platform,
 } from 'react-native';
 import {
     Text,
@@ -14,6 +16,7 @@ import {
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 
 const GymCreation = () => {
     const [name, setName] = useState('');
@@ -23,6 +26,10 @@ const GymCreation = () => {
     const [state, setState] = useState('');
     const [phone, setPhone] = useState('');
     const [description, setDescription] = useState('');
+
+    const [logoUri, setLogoUri] = useState<string | null>(null);
+    const [logoName, setLogoName] = useState<string | null>(null);
+    const [logoType, setLogoType] = useState<string | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -51,42 +58,79 @@ const GymCreation = () => {
         try {
 
             const id = await getUserId();
-          
+
             setLoading(true);
             setError('');
 
-            // console.log({
-            //     name,
-            //     email,
-            //     address,
-            //     city,
-            //     state,
-            //     phone,
-            //     description,
-            // });
+            const url = `http://192.168.29.218:8000/owner/add-gym/${id}`;
 
-            const res = await fetch(`http://192.168.29.218:8000/owner/add-gym/${id}`, {
-                method: "POST",
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('address', address);
+            formData.append('city', city);
+            formData.append('state', state);
+            formData.append('phone', phone);
+            formData.append('description', description);
+
+            if (logoUri) {
+                const uri = Platform.OS === 'android' ? logoUri : logoUri.replace('file://', '');
+                const filename = logoName || uri.split('/').pop() || 'photo.jpg';
+                const match = /\.(\w+)$/.exec(filename);
+                const type = logoType || (match ? `image/${match[1]}` : 'image/jpeg');
+                // @ts-ignore - React Native FormData file object
+                formData.append('image', { uri, name: filename, type });
+            }
+
+            const res = await fetch(url, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    // NOTE: Do NOT set Content-Type header; let fetch set the multipart boundary
                 },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    address,
-                    city,
-                    state,
-                    phone,
-                    description,
-                }),
-            })
-            // API CALL HERE
+                body: formData,
+            });
+
             const data = await res.json();
-            console.log(data)
+            console.log(data);
         } catch (err) {
             setError('Failed to create gym');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const pickImage = async () => {
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                setError('Permission to access media library is required.');
+                return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                quality: 0.7,
+            });
+
+            // Newer SDK returns assets array
+            const asset = (result as any).assets ? (result as any).assets[0] : result;
+
+            if (!asset || asset.cancelled) return;
+
+            const uri = asset.uri || asset.uri;
+            setLogoUri(uri);
+
+            const name = uri.split('/').pop();
+            setLogoName(name || null);
+
+            const match = /\.(\w+)$/.exec(name || '');
+            const type = match ? `image/${match[1]}` : 'image/jpeg';
+            setLogoType(type);
+        } catch (e) {
+            console.log(e);
+            setError('Image selection failed');
         }
     };
 
@@ -207,6 +251,21 @@ const GymCreation = () => {
                         outlineStyle={styles.outline}
                         theme={inputTheme}
                     />
+
+                    <View style={styles.logoSection}>
+                        {logoUri ? (
+                            <Image source={{ uri: logoUri }} style={styles.logoPreview} />
+                        ) : null}
+
+                        <Button
+                            mode="outlined"
+                            onPress={pickImage}
+                            style={styles.uploadButton}
+                            labelStyle={styles.uploadButtonLabel}
+                        >
+                            {logoUri ? 'Change Logo' : 'Upload Logo'}
+                        </Button>
+                    </View>
 
                     <Button
                         mode="contained"
@@ -347,5 +406,24 @@ const styles = StyleSheet.create({
     footerText: {
         color: '#71717A',
         fontSize: 13,
+    },
+    logoSection: {
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    logoPreview: {
+        width: 112,
+        height: 112,
+        borderRadius: 14,
+        marginBottom: 10,
+        backgroundColor: '#111',
+    },
+    uploadButton: {
+        borderRadius: 14,
+        borderColor: '#FF7A00',
+    },
+    uploadButtonLabel: {
+        color: '#FF7A00',
+        fontWeight: '700',
     },
 });

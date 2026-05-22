@@ -14,39 +14,50 @@ export default function OwnerDashboardScreen() {
     });
 
     useEffect(() => {
-
         fetchGym()
     }, []);
 
     const fetchGym = async () => {
         try {
 
-
             const res = await fetch(
-                `http://192.168.29.218:8000/owner/get-gym-detail/${gymId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json"
+                `http://192.168.29.218:8000/owner/get-gym-detail/${gymId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
                 }
-            }
             );
 
-            const data = await res.json();
-            await AsyncStorage.setItem("@userData", JSON.stringify(data))
+            const response = await res.json();
 
-            const subscribers = data.members ? data.members.filter(member => member.isActive === true).length() : 0
+            // console.log(JSON.stringify(response, null, 2));
+
+            // actual gym object
+            const gymData = response.data;
+
+            // store in async storage
+            await AsyncStorage.setItem(
+                "@userData",
+                JSON.stringify(gymData)
+            );
+
+            // active subscribers
+            const subscribers = gymData?.members
+                ? gymData.members.filter(
+                    member => member.status === "active"
+                ).length
+                : 0;
 
             setStats({
-                totalMembers: data?.members?.length || 0,
+                totalMembers: gymData?.members?.length || 0,
                 activeSubscriptions: subscribers,
-                totalRevenue: 5820,
-            })
-
+                totalRevenue: gymData?.totalRevenue || 0,
+            });
 
         } catch (error) {
             console.log(error);
-        } finally {
-            // setLoading(false);
         }
     };
 

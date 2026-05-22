@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Card, Searchbar, Text, Avatar } from 'react-native-paper';
@@ -7,23 +8,53 @@ interface Member {
     full_name: string;
     email: string;
     phone: string;
+    plan_price: number;
+    status: string;
 }
 
-const MOCK_MEMBERS: Member[] = [];
+const STORAGE_KEY = '@userData';
 
 export default function MembersScreen() {
     const [members, setMembers] = useState<Member[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        setMembers(MOCK_MEMBERS);
+        fetchMembers();
     }, []);
+
+    const fetchMembers = async () => {
+        try {
+            const data = await AsyncStorage.getItem(STORAGE_KEY);
+
+            if (data) {
+                const parsed = JSON.parse(data);
+
+                const members =
+                    parsed?.members.map((member: any) => ({
+                        id: member._id,
+                        full_name: member.user.username,
+                        email: member.user.email,
+                        phone: member.user.phone,
+                        plan_price: member.plan?.price || 0,
+                        status: member.status || 'inactive',
+                    })) || [];
+
+                setMembers(members);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     const filteredMembers = useMemo(() => {
         return members.filter(
             (m) =>
-                m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                m.email.toLowerCase().includes(searchQuery.toLowerCase())
+                m.full_name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                m.email
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
         );
     }, [searchQuery, members]);
 
@@ -31,8 +62,7 @@ export default function MembersScreen() {
         return name
             .split(' ')
             .map((n) => n[0])
-            .join('')
-            .toUpperCase();
+            .join('');
     };
 
     const renderMember = ({ item }: { item: Member }) => (
@@ -45,9 +75,37 @@ export default function MembersScreen() {
                 />
 
                 <View style={styles.info}>
-                    <Text style={styles.name}>{item.full_name}</Text>
-                    <Text style={styles.email}>{item.email}</Text>
-                    <Text style={styles.phone}>{item.phone}</Text>
+                    <Text style={styles.name}>
+                        {item.full_name}
+                    </Text>
+
+                    <Text style={styles.email}>
+                        {item.email}
+                    </Text>
+
+                    <Text style={styles.phone}>
+                        {item.phone}
+                    </Text>
+
+                    <Text style={styles.planPrice}>
+                        ₹{item.plan_price}
+                    </Text>
+                </View>
+
+                {/* STATUS BADGE */}
+                <View
+                    style={[
+                        styles.statusBadge,
+                        item.status === 'active'
+                            ? styles.activeBadge
+                            : item.status === 'inactive'
+                                ? styles.inactiveBadge
+                                : styles.cancelledBadge,
+                    ]}
+                >
+                    <Text style={styles.statusText}>
+                        {item.status.toUpperCase()}
+                    </Text>
                 </View>
             </View>
         </Card>
@@ -55,14 +113,13 @@ export default function MembersScreen() {
 
     return (
         <View style={styles.container}>
-            {/* <Text style={styles.title}>Members</Text> */}
-
             <Searchbar
                 placeholder="Search members..."
                 onChangeText={setSearchQuery}
                 value={searchQuery}
                 style={styles.searchbar}
                 inputStyle={{ color: '#fff' }}
+                placeholderTextColor="#777"
             />
 
             <FlatList
@@ -74,7 +131,9 @@ export default function MembersScreen() {
             />
 
             {filteredMembers.length === 0 && (
-                <Text style={styles.empty}>No members found</Text>
+                <Text style={styles.empty}>
+                    No members found
+                </Text>
             )}
         </View>
     );
@@ -85,13 +144,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#0F0F10',
         padding: 16,
-    },
-
-    title: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: '#fff',
-        marginBottom: 12,
     },
 
     searchbar: {
@@ -141,6 +193,39 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         marginTop: 2,
         fontSize: 12,
+    },
+
+    planPrice: {
+        color: '#FF7A00',
+        marginTop: 6,
+        fontSize: 14,
+        fontWeight: '700',
+    },
+
+    statusBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 20,
+        alignSelf: 'flex-start',
+    },
+
+    activeBadge: {
+        backgroundColor: '#16A34A',
+    },
+
+    inactiveBadge: {
+        backgroundColor: '#CA8A04',
+    },
+
+    cancelledBadge: {
+        backgroundColor: '#DC2626',
+    },
+
+    statusText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 
     empty: {

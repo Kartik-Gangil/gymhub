@@ -39,16 +39,16 @@ export default function LoginScreen() {
 
     useEffect(() => {
         getUserData().then((data) => {
-
+            // console.log(data)
             if (data?.user?.id) {
                 if (data?.role === 'owner') {
-                    router.replace('/(app)/owner/')
+                    router.replace('/(app)/owner')
                 } else {
-                    if (data?.gymName === "") {
-                        router.replace('/(app)/member/');
+                    if (data?.user?.membership.length > 0) {
+                        router.replace('/(app)/member');
                     }
                     else {
-                        router.replace('/(app)/member/dashboard');
+                        router.replace('/(app)/member/(tabs)/dashboard');
 
                     }
                 }

@@ -40,11 +40,16 @@ export default function SubscriptionsScreen() {
             if (data) {
                 const parsed = JSON.parse(data);
 
-                const plans = parsed?.data?.plans || [];
+                const plans = parsed?.plans || [];
 
-                setSubscriptions(plans);
+                setSubscriptions(plans.map((p: any) => ({
+                    _id: p._id,
+                    name: p.name,
+                    price: p.price,
+                    duration: p.days,
+                })));
 
-                console.log(plans);
+                // console.log(plans);
             }
         } catch (err) {
             console.log(err);
@@ -53,7 +58,7 @@ export default function SubscriptionsScreen() {
 
     useEffect(() => {
         loadPlans();
-        console.log(planName)
+        // console.log(planName)
     }, []);
 
     // ✅ Save back to storage
@@ -80,7 +85,7 @@ export default function SubscriptionsScreen() {
 
                 const data = parsedData;
 
-                // console.log('User ID:', userId);
+                console.log('User ID:', data._id); // Log the user ID
 
                 return data;
             }
@@ -95,8 +100,8 @@ export default function SubscriptionsScreen() {
 
         try {
             const data = await getUserData();
-
-            const res = await fetch(`http://192.168.29.218:8000/owner/addPlan/${data.data._id}`, {
+            // console.log(data.user.id)
+            const res = await fetch(`http://192.168.29.218:8000/owner/addPlan/${data._id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -105,20 +110,23 @@ export default function SubscriptionsScreen() {
                     name: planName, price, days: duration
                 })
             })
+            const response = await res.json();
+            const newPlan = {
+                _id: response.id,
+                name: planName,
+                price: Number(price),
+                duration: Number(duration),
+            };
+
+            const updated: Subscription[] = [...subscriptions, newPlan];
+
+            setSubscriptions(updated);
+            await savePlans(updated);
 
         } catch (error) {
             console.log(error)
         }
-        const newPlan = {
-            name: planName,
-            price: Number(price),
-            duration: Number(duration),
-        };
 
-        const updated = [...subscriptions, newPlan];
-
-        setSubscriptions(updated);
-        await savePlans(updated);
 
         setVisible(false);
         setPlanName('');
@@ -131,7 +139,7 @@ export default function SubscriptionsScreen() {
         try {
             const data = await getUserData();
 
-            const res = await fetch(`http://192.168.29.218:8000/owner/delete-plan/${data.data._id}/${id}`, {
+            const res = await fetch(`http://192.168.29.218:8000/owner/delete-plan/${data._id}/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -178,7 +186,7 @@ export default function SubscriptionsScreen() {
             <FlatList
                 data={subscriptions}
                 renderItem={renderSubscription}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.list}
             />
 

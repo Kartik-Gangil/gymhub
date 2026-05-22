@@ -4,9 +4,17 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useAuthStore } from '../../../../lib/auth-store';
 
+interface Option {
+    id: number;
+    label: string;
+    value: string;
+}
 export default function SettingsScreen() {
     const router = useRouter();
     const { signOut } = useAuthStore();
+    const options: Option[] = [
+        { id: 1, label: 'Switch Gym', value: '/(app)/owner/' },
+    ];
 
     const handleLogout = async () => {
         await signOut();
@@ -15,7 +23,19 @@ export default function SettingsScreen() {
 
     return (
         <View style={styles.container}>
-            <Text variant="headlineSmall" style={styles.title}>Settings</Text>
+            {/* <Text variant="headlineSmall" style={styles.title}>Settings</Text> */}
+            {options.map((option) => (
+                <Button
+                    mode='outlined'
+                    key={option.id}
+                    onPress={() => router.push(option.value)}
+                    style={styles.optionButton}
+                    textColor="#fff"
+                    
+                >
+                    {option.label}
+                </Button>
+            ))}
             <Button
                 mode="contained"
                 onPress={handleLogout}
@@ -41,4 +61,10 @@ const styles = StyleSheet.create({
     logoutButton: {
         backgroundColor: '#FF6347',
     },
+    optionButton: {
+        marginBottom: 12,
+        borderTopWidth: 0,
+        borderRightWidth: 0,
+        borderLeftWidth: 0,
+    }
 });
