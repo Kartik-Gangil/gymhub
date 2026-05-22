@@ -1,21 +1,12 @@
 import { Stack, Redirect } from 'expo-router';
 import { useAuthStore } from '../../lib/auth-store';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-SplashScreen.preventAutoHideAsync();
 
 export default function AppLayout() {
-  useEffect(() => {
-    async function prepare() {
+  const { user } = useAuthStore();
 
-      // fake loading
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      await SplashScreen.hideAsync();
-    }
-
-    prepare();
-  }, []);
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

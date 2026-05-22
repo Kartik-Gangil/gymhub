@@ -28,7 +28,7 @@ export default function GymListingScreen() {
 
     const loadGym = async () => {
         try {
-            const data = await fetch("http://192.168.29.218:8000/view", {
+            const data = await fetch("http://72.61.226.250:6000/view", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
@@ -42,10 +42,10 @@ export default function GymListingScreen() {
         }
     }
 
-    const renderGymCard = ({ item , index }: any) => (
+    const renderGymCard = ({ item, index }: any) => (
         <View style={styles.card} key={index}>
             <View style={styles.imageContainer}>
-                <Image source={{ uri: item.logo ? item.logo :item.cover }} style={styles.image} />
+                <Image source={{ uri: item.logo ? item.logo : item.cover }} style={styles.image} />
 
                 <View style={styles.ratingBadge}>
                     <Text style={styles.ratingText}>⭐ {item.rating}</Text>

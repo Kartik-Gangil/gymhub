@@ -21,7 +21,7 @@ export default function OwnerDashboardScreen() {
         try {
 
             const res = await fetch(
-                `http://192.168.29.218:8000/owner/get-gym-detail/${gymId}`,
+                `http://72.61.226.250:6000/owner/get-gym-detail/${gymId}`,
                 {
                     method: "GET",
                     headers: {

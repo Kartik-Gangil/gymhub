@@ -59,7 +59,7 @@ export default function SubscriptionScreen() {
 
             // Fetch memberships
             const membershipResponse = await fetch(
-                `http://192.168.29.218:8000/member/user/${user.id}/memberships`,
+                `http://72.61.226.250:6000/member/user/${user.id}/memberships`,
                 {
                     method: 'GET',
                     headers: {
@@ -80,7 +80,7 @@ export default function SubscriptionScreen() {
 
             // Fetch gyms
             const gymResponse = await fetch(
-                `http://192.168.29.218:8000/view/get-all-gyms`,
+                `http://72.61.226.250:6000/view/get-all-gyms`,
                 {
                     method: 'GET',
                     headers: {

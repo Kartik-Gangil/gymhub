@@ -67,7 +67,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     ) => {
         try {
             const res = await fetch(
-                'http://192.168.29.218:8000/signup',
+                'http://72.61.226.250:6000/signup',
                 {
                     method: 'POST',
                     headers: {
@@ -129,7 +129,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
         try {
 
             const res = await fetch(
-                'http://192.168.29.218:8000/login',
+                'http://72.61.226.250:6000/login',
                 {
                     method: 'POST',
                     headers: {

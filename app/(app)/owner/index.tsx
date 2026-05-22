@@ -53,7 +53,7 @@ const GymListPage = () => {
             const id = await getUserId();
 
             const res = await fetch(
-                `http://192.168.29.218:8000/owner/fetchGym/${id}`
+                `http://72.61.226.250:6000/owner/fetchGym/${id}`
             );
 
             const data = await res.json();

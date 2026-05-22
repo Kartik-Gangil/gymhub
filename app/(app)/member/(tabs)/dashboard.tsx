@@ -48,7 +48,7 @@ export default function MemberDashboardScreen() {
             setLoading(true);
 
             const response = await fetch(
-                `http://192.168.29.218:8000/member/user/${user.id}/memberships`,
+                `http://72.61.226.250:6000/member/user/${user.id}/memberships`,
                 {
                     method: 'GET',
                     headers: {
@@ -98,7 +98,7 @@ export default function MemberDashboardScreen() {
             setCancelLoading(membershipId);
 
             const response = await fetch(
-                `http://192.168.29.218:8000/member/membership/${membershipId}/cancel`,
+                `http://72.61.226.250:6000/member/membership/${membershipId}/cancel`,
                 {
                     method: 'POST',
                     headers: {

@@ -62,7 +62,7 @@ const GymCreation = () => {
             setLoading(true);
             setError('');
 
-            const url = `http://192.168.29.218:8000/owner/add-gym/${id}`;
+            const url = `http://72.61.226.250:6000/owner/add-gym/${id}`;
 
             const formData = new FormData();
             formData.append('name', name);

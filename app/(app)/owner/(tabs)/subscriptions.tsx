@@ -101,7 +101,7 @@ export default function SubscriptionsScreen() {
         try {
             const data = await getUserData();
             // console.log(data.user.id)
-            const res = await fetch(`http://192.168.29.218:8000/owner/addPlan/${data._id}`, {
+            const res = await fetch(`http://72.61.226.250:6000/owner/addPlan/${data._id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -139,7 +139,7 @@ export default function SubscriptionsScreen() {
         try {
             const data = await getUserData();
 
-            const res = await fetch(`http://192.168.29.218:8000/owner/delete-plan/${data._id}/${id}`, {
+            const res = await fetch(`http://72.61.226.250:6000/owner/delete-plan/${data._id}/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"

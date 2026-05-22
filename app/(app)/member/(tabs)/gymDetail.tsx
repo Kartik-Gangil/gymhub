@@ -91,7 +91,7 @@ export default function GymDetailsScreen() {
       setLoading(true);
 
       const response = await fetch(
-        `http://192.168.29.218:8000/view/get-gym-detail/${gymId}`,
+        `http://72.61.226.250:6000/view/get-gym-detail/${gymId}`,
         {
           method: 'GET',
           headers: {
@@ -136,7 +136,7 @@ export default function GymDetailsScreen() {
       const data = await getUserData();
 
       const res = await fetch(
-        `http://192.168.29.218:8000/member/add-member/${gymId}`,
+        `http://72.61.226.250:6000/member/add-member/${gymId}`,
         {
           method: 'POST',
           headers: {
