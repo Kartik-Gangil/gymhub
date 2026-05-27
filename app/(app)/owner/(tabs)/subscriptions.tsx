@@ -14,6 +14,7 @@ import {
 } from 'react-native-paper';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 interface Subscription {
     _id: string;
@@ -27,7 +28,9 @@ const STORAGE_KEY = '@userData';
 export default function SubscriptionsScreen() {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [visible, setVisible] = useState(false);
-
+    const [Updatevisible, setUpdateVisible] = useState(false);
+    const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
     const [planName, setPlanName] = useState('');
     const [price, setPrice] = useState('');
     const [duration, setDuration] = useState('');
@@ -41,7 +44,7 @@ export default function SubscriptionsScreen() {
                 const parsed = JSON.parse(data);
 
                 const plans = parsed?.plans || [];
-
+                // console.log(plans);
                 setSubscriptions(plans.map((p: any) => ({
                     _id: p._id,
                     name: p.name,
@@ -101,7 +104,7 @@ export default function SubscriptionsScreen() {
         try {
             const data = await getUserData();
             // console.log(data.user.id)
-            const res = await fetch(`http://72.61.226.250:6000/owner/addPlan/${data._id}`, {
+            const res = await fetch(`${Base_url}/owner/addPlan/${data._id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -134,12 +137,47 @@ export default function SubscriptionsScreen() {
         setDuration('');
     };
 
+    // ✅ Update Plan
+    const handleUpdatePlan = async () => {
+        if (!selectedPlanId) return;
+
+        try {
+            const res = await fetch(`${Base_url}/owner/update-plan/${selectedPlanId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: planName, price, days: duration }),
+            });
+
+            const response = await res.json();
+
+            // Update local state
+            const updated: Subscription[] = subscriptions.map((s) =>
+                s._id === selectedPlanId
+                    ? { ...s, name: planName, price: Number(price), duration: Number(duration) }
+                    : s
+            );
+
+            setSubscriptions(updated);
+            await savePlans(updated);
+        } catch (error) {
+            console.log(error);
+        }
+
+        setUpdateVisible(false);
+        setSelectedPlanId(null);
+        setPlanName('');
+        setPrice('');
+        setDuration('');
+    };
+
     // ✅ Delete Plan
     const handleDelete = async (id: string) => {
         try {
             const data = await getUserData();
 
-            const res = await fetch(`http://72.61.226.250:6000/owner/delete-plan/${data._id}/${id}`, {
+            const res = await fetch(`${Base_url}/owner/delete-plan/${data._id}/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -156,7 +194,23 @@ export default function SubscriptionsScreen() {
     const renderSubscription = ({ item }: { item: Subscription }) => (
         <Card style={styles.subCard}>
             <Card.Content>
-                <Text variant="titleMedium">{item.name}</Text>
+
+                <View style={styles.head}>
+                    <Text variant="titleMedium">{item.name}</Text>
+                    <MaterialCommunityIcons
+                        name="dots-vertical"
+                        size={24}
+                        color="white"
+                        onPress={() => {
+                            setSelectedPlanId(item._id);
+                            setPlanName(item.name);
+                            setPrice(String(item.price));
+                            setDuration(String(item.duration));
+                            // console.log(item)
+                            setUpdateVisible(true);
+                        }}
+                    />
+                </View>
 
                 <View style={styles.details}>
                     <Text style={styles.price}>₹{item.price}</Text>
@@ -177,7 +231,13 @@ export default function SubscriptionsScreen() {
             <Button
                 mode="contained"
                 style={styles.addButton}
-                onPress={() => setVisible(true)}
+                onPress={() => {
+                    setVisible(true)
+                    setPlanName('');
+                    setPrice('');
+                    setDuration('');
+                }
+                }
             >
                 Add Plan
             </Button>
@@ -231,7 +291,51 @@ export default function SubscriptionsScreen() {
                     </Button>
                 </Modal>
             </Portal>
-        </View>
+
+
+            {/* UPDATE MODAL */}
+            <Portal>
+                <Modal
+                    visible={Updatevisible}
+                    onDismiss={() => setUpdateVisible(false)}
+                    contentContainerStyle={styles.modal}
+                >
+                    <Text style={styles.modalTitle}>Update Plan</Text>
+
+                    <TextInput
+                        label="Plan Name"
+                        value={planName}
+                        onChangeText={setPlanName}
+                        style={styles.input}
+                    />
+
+                    <TextInput
+                        label="Price"
+                        value={price}
+                        keyboardType="numeric"
+                        onChangeText={setPrice}
+                        style={styles.input}
+                    />
+
+                    <TextInput
+                        label="Duration (days)"
+                        value={duration}
+                        keyboardType="numeric"
+                        onChangeText={setDuration}
+                        style={styles.input}
+                    />
+
+                    <Button
+                        mode="contained"
+                        onPress={handleUpdatePlan}
+                        style={styles.saveBtn}
+                    >
+                        Save Plan
+                    </Button>
+                </Modal>
+            </Portal>
+
+        </View >
     );
 }
 
@@ -261,6 +365,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 12,
+    },
+    head: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
 
     price: {

@@ -61,8 +61,8 @@ const GymCreation = () => {
 
             setLoading(true);
             setError('');
-
-            const url = `http://72.61.226.250:6000/owner/add-gym/${id}`;
+            const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+            const url = `${Base_url}/owner/add-gym/${id}`;
 
             const formData = new FormData();
             formData.append('name', name);

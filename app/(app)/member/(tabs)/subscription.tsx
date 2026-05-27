@@ -42,7 +42,7 @@ interface Gym {
 
 export default function SubscriptionScreen() {
     const { user } = useAuthStore();
-
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
     const [memberships, setMemberships] = useState<Membership[]>([]);
     const [gyms, setGyms] = useState<Gym[]>([]);
     const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export default function SubscriptionScreen() {
 
             // Fetch memberships
             const membershipResponse = await fetch(
-                `http://72.61.226.250:6000/member/user/${user.id}/memberships`,
+                `${Base_url}/member/user/${user.id}/memberships`,
                 {
                     method: 'GET',
                     headers: {
@@ -80,7 +80,7 @@ export default function SubscriptionScreen() {
 
             // Fetch gyms
             const gymResponse = await fetch(
-                `http://72.61.226.250:6000/view/get-all-gyms`,
+                `${Base_url}/view/get-all-gyms`,
                 {
                     method: 'GET',
                     headers: {

@@ -36,19 +36,19 @@ export default function MemberDashboardScreen() {
     const [memberships, setMemberships] = useState<Membership[]>([]);
     const [loading, setLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState('');
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
 
     useEffect(() => {
         if (user) {
             fetchMemberships();
         }
-    }, [user]);
+    }, []);
 
     const fetchMemberships = async () => {
         try {
             setLoading(true);
-
             const response = await fetch(
-                `http://72.61.226.250:6000/member/user/${user.id}/memberships`,
+                `${Base_url}/member/user/${user.id}/memberships`,
                 {
                     method: 'GET',
                     headers: {
@@ -98,7 +98,7 @@ export default function MemberDashboardScreen() {
             setCancelLoading(membershipId);
 
             const response = await fetch(
-                `http://72.61.226.250:6000/member/membership/${membershipId}/cancel`,
+                `${Base_url}/member/membership/${membershipId}/cancel`,
                 {
                     method: 'POST',
                     headers: {

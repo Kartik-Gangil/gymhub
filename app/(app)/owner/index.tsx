@@ -24,6 +24,7 @@ const GymListPage = () => {
     const [gyms, setGyms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { signOut } = useAuthStore()
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
     const STORAGE_KEY = '@gymhub_auth';
     const getUserId = async () => {
         try {
@@ -53,7 +54,7 @@ const GymListPage = () => {
             const id = await getUserId();
 
             const res = await fetch(
-                `http://72.61.226.250:6000/owner/fetchGym/${id}`
+                `${Base_url}/owner/fetchGym/${id}`
             );
 
             const data = await res.json();

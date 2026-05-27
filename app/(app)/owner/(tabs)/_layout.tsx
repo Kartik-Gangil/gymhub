@@ -146,6 +146,13 @@ export default function OwnerLayout() {
                     headerShown: false,
                 }}
             />
+            <Tabs.Screen
+                name="updateGym"
+                options={{
+                    href: null,
+                    headerShown: false,
+                }}
+            />
         </Tabs>
     );
 }

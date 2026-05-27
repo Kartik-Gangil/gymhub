@@ -14,6 +14,7 @@ export default function SettingsScreen() {
     const { signOut } = useAuthStore();
     const options: Option[] = [
         { id: 1, label: 'Switch Gym', value: '/(app)/owner/' },
+        { id: 2, label: 'Edit Gym Details', value: '/(app)/owner/updateGym' },
     ];
 
     const handleLogout = async () => {

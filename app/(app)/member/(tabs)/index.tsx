@@ -4,11 +4,11 @@ import {
     Text,
     StyleSheet,
     FlatList,
-    Image,
     TextInput,
     TouchableOpacity,
     SafeAreaView,
 } from 'react-native';
+import { Image } from 'expo-image'
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/lib/auth-store';
@@ -18,6 +18,7 @@ export default function GymListingScreen() {
     const [search, setSearch] = useState('');
     const [gyms, setGyms] = useState([])
     const { signOut } = useAuthStore();
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
     useEffect(() => {
         loadGym()
     }, [])
@@ -28,7 +29,7 @@ export default function GymListingScreen() {
 
     const loadGym = async () => {
         try {
-            const data = await fetch("http://72.61.226.250:6000/view", {
+            const data = await fetch(`${Base_url}/view`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
@@ -43,41 +44,35 @@ export default function GymListingScreen() {
     }
 
     const renderGymCard = ({ item, index }: any) => (
-        <View style={styles.card} key={index}>
+        <TouchableOpacity style={styles.card} key={index} onPress={() => router.push({
+            pathname: '/member/gymDetail',
+            params: {
+                gymId: item.id
+            }
+        })}>
             <View style={styles.imageContainer}>
                 <Image source={{ uri: item.logo ? item.logo : item.cover }} style={styles.image} />
 
-                <View style={styles.ratingBadge}>
+                {/* <View style={styles.ratingBadge}>
                     <Text style={styles.ratingText}>⭐ {item.rating}</Text>
-                </View>
+                </View> */}
             </View>
 
             <View style={styles.cardContent}>
                 <Text style={styles.gymName}>{item.name}</Text>
 
-                <Text style={styles.city}>📍 {item.city}</Text>
-
                 <View style={styles.bottomRow}>
+                    <Text style={styles.city}>📍 {item.city}, {item.state}</Text>
+
                     <View>
                         <Text style={styles.memberLabel}>Members</Text>
                         <Text style={styles.memberCount}>
                             {item.members}+
                         </Text>
                     </View>
-
-
-                    <TouchableOpacity style={styles.button}
-                        onPress={() => router.push({
-                            pathname: '/member/gymDetail',
-                            params: {
-                                gymId: item.id
-                            }
-                        })}>
-                        <Text style={styles.buttonText}>View Gym</Text>
-                    </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -232,7 +227,7 @@ const styles = StyleSheet.create({
     },
 
     bottomRow: {
-        marginTop: 18,
+        // marginTop: 18,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',

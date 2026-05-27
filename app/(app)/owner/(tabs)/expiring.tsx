@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, Linking, StyleSheet, View } from 'react-native';
 import { Button, Card, Text } from 'react-native-paper';
 
 interface ExpiringSubscription {
@@ -10,6 +10,7 @@ interface ExpiringSubscription {
     plan_name: string;
     end_date: string;
     plan_price?: number;
+    phone: string;
 }
 
 const STORAGE_KEY = '@userData';
@@ -21,6 +22,19 @@ export default function ExpiringScreen() {
     useEffect(() => {
         calculateExpiring();
     }, []);
+
+    const openWhatsApp = async (name: string, phone: string, days: string) => {
+        const message = `Hello ${name}, your plan is expiring with in ${days}! Please renew to continue enjoying our services.`;
+
+        const url = `whatsapp://send?phone=91${phone}&text=${encodeURIComponent(message)}`;
+
+        try {
+            await Linking.openURL(url);
+        } catch (error) {
+            alert("Make sure WhatsApp is installed");
+        }
+    };
+
 
     const calculateExpiring = async () => {
         try {
@@ -52,6 +66,7 @@ export default function ExpiringScreen() {
 
                         plan_price:
                             member?.plan?.price || 0,
+                        phone: member?.user?.phone || 'N/A',
 
                         // FIXED
                         end_date: member.endDate,
@@ -100,11 +115,14 @@ export default function ExpiringScreen() {
             </Card.Content>
 
             <Card.Actions>
-                <Button mode="contained-tonal">
+                <Button mode="contained-tonal" onPress={() => openWhatsApp(item.member_name, item.phone, formatDistanceToNow(
+                    new Date(item.end_date),
+                    { addSuffix: true }
+                ))}>
                     Notify
                 </Button>
             </Card.Actions>
-        </Card>
+        </Card >
     );
 
     return (
@@ -151,5 +169,5 @@ const styles = StyleSheet.create({
     date: {
         color: '#FF6347',
         marginTop: 8,
-    },
+    }
 });

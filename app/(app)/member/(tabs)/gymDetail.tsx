@@ -63,7 +63,7 @@ export default function GymDetailsScreen() {
   const [planId, setPlanId] = useState('');
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
-
+  const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
   useEffect(() => {
     if (gymId) {
       fetchGymDetail();
@@ -91,7 +91,7 @@ export default function GymDetailsScreen() {
       setLoading(true);
 
       const response = await fetch(
-        `http://72.61.226.250:6000/view/get-gym-detail/${gymId}`,
+        `${Base_url}/view/get-gym-detail/${gymId}`,
         {
           method: 'GET',
           headers: {
@@ -136,7 +136,7 @@ export default function GymDetailsScreen() {
       const data = await getUserData();
 
       const res = await fetch(
-        `http://72.61.226.250:6000/member/add-member/${gymId}`,
+        `${Base_url}/member/add-member/${gymId}`,
         {
           method: 'POST',
           headers: {
@@ -241,7 +241,7 @@ export default function GymDetailsScreen() {
 
         {/* STATS */}
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+          {/* <View style={styles.statItem}>
             <MaterialCommunityIcons
               name="star-outline"
               size={20}
@@ -249,9 +249,8 @@ export default function GymDetailsScreen() {
             />
 
             <Text style={styles.statValue}> - </Text>
-          </View>
-
-          <View style={styles.divider} />
+          </View> 
+          <View style={styles.divider} /> */}
 
           <View style={styles.statItem}>
             <MaterialCommunityIcons
@@ -274,7 +273,7 @@ export default function GymDetailsScreen() {
               color="#ff7a00"
             />
 
-            <Text style={styles.statValue}> - </Text>
+            <Text style={styles.statValue}> {gymData?.city}, {gymData?.state} </Text>
           </View>
         </View>
 

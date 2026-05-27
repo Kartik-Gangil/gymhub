@@ -6,9 +6,10 @@ interface User {
     email: string;
     username?: string;
     phone?: string;
+    profile_picture?: string;
     membership?: []
 }
-
+const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
 interface AuthStore {
     user: User | null;
     session: any | null;
@@ -22,7 +23,8 @@ interface AuthStore {
         password: string,
         fullName: string,
         phone: string,
-        role: 'owner' | 'member'
+        role: 'owner' | 'member',
+        otp?: string
     ) => Promise<void>;
 
     signIn: (email: string, password: string) => Promise<void>;
@@ -63,39 +65,60 @@ export const useAuthStore = create<AuthStore>((set) => ({
         password: string,
         fullName: string,
         phone: string,
-        role: 'owner' | 'member'
+        role: 'owner' | 'member',
+        otp?: string
     ) => {
         try {
+
+            // FIRST REQUEST -> SEND OTP
+            // SECOND REQUEST -> VERIFY OTP + CREATE USER
+
+            const body: any = {
+                email,
+            };
+
+            // IF OTP EXISTS -> VERIFY OTP FLOW
+            if (otp) {
+                body.otp = otp;
+            } else {
+                // SEND OTP FLOW
+                body.name = fullName;
+                body.phone = phone;
+                body.password = password;
+                body.role = role;
+            }
+
             const res = await fetch(
-                'http://72.61.226.250:6000/signup',
+                `${Base_url}/signup`,
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        name: fullName,
-                        email,
-                        phone,
-                        password,
-                        role,
-                    }),
+                    body: JSON.stringify(body),
                 }
             );
 
             const data = await res.json();
 
-            // console.log('Signup Response:', data);
-
             if (!res.ok) {
                 throw new Error(data.message || 'Signup failed');
             }
 
+            // OTP SENT SUCCESSFULLY
+            if (!otp) {
+                return {
+                    otpSent: true,
+                    message: data.message,
+                };
+            }
+
+            // OTP VERIFIED -> USER CREATED
             const user: User = {
-                id: data.user._id,
+                id: data.user.id,
                 email: data.user.email,
-                username: data.user.name,
-                phone: data.user.phone,
+                username: data.user.user_metadata.full_name,
+                phone: data.user.user_metadata.phone,
                 membership: data.user.membership || []
             };
 
@@ -105,7 +128,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
             const authData = {
                 user,
-                role: data.user.role,
+                role: data.role,
                 session,
             };
 
@@ -116,9 +139,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
             set({
                 user,
-                role: data.user.role,
+                role: data.role,
                 session,
             });
+
+            return {
+                success: true,
+            };
+
         } catch (error) {
             console.error('Signup Error:', error);
             throw error;
@@ -129,7 +157,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
         try {
 
             const res = await fetch(
-                'http://72.61.226.250:6000/login',
+                `${Base_url}/login`,
                 {
                     method: 'POST',
                     headers: {
@@ -148,13 +176,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
             if (!res.ok) {
                 throw new Error(data.message || 'Signup failed');
             }
-
-
             // MOCK LOGIN
             const user: User = {
                 id: data.user._id,
                 email: data.user.email,
-                username: data.user.name,
+                username: data.user.username,
+                profile_picture: data.user.profilePicture,
                 phone: data.user.phone,
                 membership: data.user.membership || []
             };

@@ -1,7 +1,27 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
+import { Image } from 'expo-image';
+import asychronicStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
 export default function MemberLayout() {
+  const [name, setName] = useState('');
+  const [profilePicture, setProfilePicture] = useState('');
+
+  function handleGetUserName() {
+    asychronicStorage.getItem('@gymhub_auth').then((user) => {
+      if (user) {
+        // console.log('User data retrieved:', JSON.parse(user));
+        setName(JSON.parse(user).user.username);
+        setProfilePicture(JSON.parse(user).user.profile_picture);
+      }
+    }).catch((error) => {
+      console.error('Error retrieving user name:', error);
+    });
+  }
+  useEffect(() => {
+    handleGetUserName()
+  }, [])
   return (
     <Tabs
       screenOptions={{
@@ -33,6 +53,21 @@ export default function MemberLayout() {
               style={{ marginLeft: 15 }}
             />
           ),
+          headerRight: () => (
+            <Image
+              source={profilePicture ? { uri: profilePicture } : `https://placehold.co/250/FFBF00/050203?text=${name ? name.charAt(0).toUpperCase() : 'U'}`}
+              contentFit="cover"
+              placeholder="blurhash"
+              transition={300}
+              style={{
+                width: 40,
+                height: 40,
+                marginRight: 15,
+                borderRadius: 50
+              }}
+            />
+          ),
+
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="compass" size={24} color={color} />
           ),
@@ -60,6 +95,20 @@ export default function MemberLayout() {
               size={24}
               color="#fff"
               style={{ marginLeft: 15 }}
+            />
+          ),
+          headerRight: () => (
+            <Image
+              source={profilePicture ? { uri: profilePicture } : `https://placehold.co/250/FFBF00/050203?text=${name ? name.charAt(0).toUpperCase() : 'U'}`}
+              contentFit="cover"
+              placeholder="blurhash"
+              transition={300}
+              style={{
+                width: 40,
+                height: 40,
+                marginRight: 15,
+                borderRadius: 50
+              }}
             />
           ),
           tabBarIcon: ({ color }) => (
@@ -150,6 +199,20 @@ export default function MemberLayout() {
               size={24}
               color="#fff"
               style={{ marginLeft: 15 }}
+            />
+          ),
+          headerRight: () => (
+            <Image
+              source={profilePicture ? { uri: profilePicture } : `https://placehold.co/250/FFBF00/050203?text=${name ? name.charAt(0).toUpperCase() : 'U'}`}
+              contentFit="cover"
+              placeholder="blurhash"
+              transition={300}
+              style={{
+                width: 40,
+                height: 40,
+                marginRight: 15,
+                borderRadius: 50
+              }}
             />
           ),
           tabBarIcon: ({ color }) => (
