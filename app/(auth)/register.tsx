@@ -101,64 +101,93 @@ export default function RegisterScreen() {
 
             try {
 
-                const res = await fetch(`${Base_url}/me`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
+                const res = await fetch(
+                    `${Base_url}/me`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     }
-                });
+                );
 
                 const userData = await res.json();
 
-                console.log("USER DATA:", userData);
-
-                const authData = {
-                    user: {
-                        id: userData.user._id,
-                        email: userData.user.email,
-                        username: userData.user.username,
-                        profile_picture: userData.user.profilePicture,
-                        membership: userData.user.membership || []
-                    },
-                    role: userData.user.role,
-                    session: {
-                        access_token: token
-                    }
-                };
-
-                await AsyncStorage.setItem(
-                    '@gymhub_auth',
-                    JSON.stringify(authData)
+                console.log(
+                    "USER DATA:",
+                    userData
                 );
 
-                useAuthStore.setState(authData);
+                const user = {
+                    id: userData.user._id,
+                    email: userData.user.email,
+                    username: userData.user.username,
+                    profile_picture: userData.user.profilePicture,
+                    membership: userData.user.membership || []
+                };
 
-                if (userData.user.role === 'owner') {
-                    router.replace('/(app)/owner');
+                const role =
+                    userData.user.role;
+
+                const session = {
+                    access_token: token
+                };
+
+                // SAVE TO ZUSTAND + ASYNC STORAGE
+                await useAuthStore
+                    .getState()
+                    .setAuth(
+                        user,
+                        role,
+                        session
+                    );
+
+                // REDIRECT
+                if (role === "owner") {
+
+                    router.replace(
+                        "/(app)/owner"
+                    );
+
                 } else {
-                    router.replace('/(app)/member');
+
+                    router.replace(
+                        "/(app)/member"
+                    );
                 }
 
             } catch (error) {
-                console.log("AUTH ERROR:", error);
+
+                console.log(
+                    "AUTH ERROR:",
+                    error
+                );
             }
         };
 
-        // APP OPENED FROM DEEP LINK
-        Linking.getInitialURL().then((url) => {
-            if (url) {
-                handleDeepLink(url);
-            }
-        });
+        // App opened from link
 
-        // APP ALREADY OPEN
-        const subscription = Linking.addEventListener(
-            'url',
-            ({ url }) => {
-                handleDeepLink(url);
-            }
-        );
+        Linking.getInitialURL()
+            .then((url) => {
+
+                if (url) {
+
+                    handleDeepLink(url);
+                }
+            });
+
+        // App already running
+
+        const subscription =
+            Linking.addEventListener(
+                "url",
+                ({ url }) => {
+
+                    handleDeepLink(url);
+                }
+            );
 
         return () => {
+
             subscription.remove();
         };
 

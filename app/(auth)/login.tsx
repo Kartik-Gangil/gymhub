@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
 export default function LoginScreen() {
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
     const router = useRouter();
     const { signIn } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -16,25 +16,25 @@ export default function LoginScreen() {
     const [error, setError] = useState('');
 
     const STORAGE_KEY = '@gymhub_auth';
-    const getUserData = async () => {
-        try {
-            const storedAuth = await AsyncStorage.getItem(STORAGE_KEY);
+    // const getUserData = async () => {
+    //     try {
+    //         const storedAuth = await AsyncStorage.getItem(STORAGE_KEY);
 
-            if (storedAuth) {
-                const parsedData = JSON.parse(storedAuth);
+    //         if (storedAuth) {
+    //             const parsedData = JSON.parse(storedAuth);
 
-                const data = parsedData;
+    //             const data = parsedData;
 
-                // console.log('User ID:', userId);
+    //             // console.log('User ID:', userId);
 
-                return data;
-            }
+    //             return data;
+    //         }
 
-            return null;
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    //         return null;
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
 
 
 
@@ -44,78 +44,107 @@ export default function LoginScreen() {
 
             if (!url) return;
 
-            console.log("RAW URL:", url);
+            // console.log("RAW URL:", url);
 
             const data = Linking.parse(url);
 
-            console.log("PARSED:", data);
+            // console.log("PARSED:", data);
 
             const token = data.queryParams?.token as string;
 
-            console.log("TOKEN:", token);
+            // console.log("TOKEN:", token);
 
             if (!token) return;
 
             try {
 
-                const res = await fetch(`${Base_url}/me`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
+                const res = await fetch(
+                    `${Base_url}/me`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     }
-                });
+                );
 
                 const userData = await res.json();
 
-                console.log("USER DATA:", userData);
+                // console.log(
+                //     "USER DATA:",
+                //     userData
+                // );
 
-                const authData = {
-                    user: {
-                        id: userData.user._id,
-                        email: userData.user.email,
-                        username: userData.user.username,
-                        profile_picture: userData.user.profilePicture,
-                        membership: userData.user.membership || []
-                    },
-                    role: userData.user.role,
-                    session: {
-                        access_token: token
-                    }
+                const user = {
+                    id: userData.user._id,
+                    email: userData.user.email,
+                    username: userData.user.username,
+                    profile_picture: userData.user.profilePicture,
+                    membership: userData.user.membership || []
                 };
 
-                await AsyncStorage.setItem(
-                    '@gymhub_auth',
-                    JSON.stringify(authData)
-                );
+                const role =
+                    userData.user.role;
 
-                useAuthStore.setState(authData);
+                const session = {
+                    access_token: token
+                };
 
-                if (userData.user.role === 'owner') {
-                    router.replace('/(app)/owner');
+                // SAVE TO ZUSTAND + ASYNC STORAGE
+                await useAuthStore
+                    .getState()
+                    .setAuth(
+                        user,
+                        role,
+                        session
+                    );
+
+                // REDIRECT
+                if (role === "owner") {
+
+                    router.replace(
+                        "/(app)/owner"
+                    );
+
                 } else {
-                    router.replace('/(app)/member');
+
+                    router.replace(
+                        "/(app)/member"
+                    );
                 }
 
             } catch (error) {
-                console.log("AUTH ERROR:", error);
+
+                console.log(
+                    "AUTH ERROR:",
+                    error
+                );
             }
         };
 
-        // APP OPENED FROM DEEP LINK
-        Linking.getInitialURL().then((url) => {
-            if (url) {
-                handleDeepLink(url);
-            }
-        });
+        // App opened from link
 
-        // APP ALREADY OPEN
-        const subscription = Linking.addEventListener(
-            'url',
-            ({ url }) => {
-                handleDeepLink(url);
-            }
-        );
+        Linking.getInitialURL()
+            .then((url) => {
+
+                if (url) {
+
+                    handleDeepLink(url);
+                }
+            });
+
+        // App already running
+
+        const subscription =
+            Linking.addEventListener(
+                "url",
+                ({ url }) => {
+
+                    handleDeepLink(url);
+                }
+            );
 
         return () => {
+
             subscription.remove();
         };
 

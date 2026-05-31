@@ -9,7 +9,7 @@ interface User {
     profile_picture?: string;
     membership?: []
 }
-const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
 interface AuthStore {
     user: User | null;
     session: any | null;
@@ -17,7 +17,11 @@ interface AuthStore {
     isLoading: boolean;
 
     initialize: () => Promise<void>;
-
+    setAuth: (
+        user: User,
+        role: 'owner' | 'member',
+        session: any
+    ) => Promise<void>;
     signUp: (
         email: string,
         password: string,
@@ -41,25 +45,108 @@ export const useAuthStore = create<AuthStore>((set) => ({
     isLoading: true,
 
     initialize: async () => {
-        try {
-            const storedAuth = await AsyncStorage.getItem(STORAGE_KEY);
 
-            if (storedAuth) {
-                const { user, role, session } = JSON.parse(storedAuth);
+        try {
+            // console.log("INIT START");
+
+            const storedAuth =
+                await AsyncStorage.getItem(
+                    STORAGE_KEY
+                );
+
+            if (!storedAuth) {
 
                 set({
-                    user,
-                    role,
-                    session,
+                    isLoading: false
                 });
-            }
-        } catch (error) {
-            console.error('Failed to initialize auth:', error);
-        } finally {
-            set({ isLoading: false });
-        }
-    },
 
+                return;
+            }
+
+            const { session } =
+                JSON.parse(storedAuth);
+
+            const res = await fetch(
+                `${Base_url}/me`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${session.access_token}`
+                    }
+                }
+            );
+
+
+
+            // console.log(
+            //     "STORAGE:",
+            //     storedAuth
+            // );
+
+            // console.log(
+            //     "FETCH STATUS:",
+            //     res.status
+            // );
+
+
+
+
+            if (!res.ok) {
+
+                await AsyncStorage.removeItem(
+                    STORAGE_KEY
+                );
+
+                set({
+                    user: null,
+                    role: null,
+                    session: null,
+                    isLoading: false
+                });
+
+                return;
+            }
+
+            const data =
+                await res.json();
+
+            // console.log(
+            //     "SETTING USER:",
+            //     data.user
+            // );
+            set({
+                user: data.user,
+                role: data.role,
+                session,
+                isLoading: false
+            });
+
+        } catch (err) {
+
+            console.log(err);
+
+            set({
+                isLoading: false
+            });
+
+        }
+
+    },
+    setAuth: async (user, role, session) => {
+
+        const authData = {
+            user,
+            role,
+            session
+        };
+
+        await AsyncStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(authData)
+        );
+
+        set(authData);
+    },
     signUp: async (
         email: string,
         password: string,
@@ -195,7 +282,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 role: data.user.role,
                 session,
             };
-
             await AsyncStorage.setItem(
                 STORAGE_KEY,
                 JSON.stringify(authData)
@@ -206,6 +292,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 role: data.user.role,
                 session,
             });
+
+
         } catch (error) {
             console.error('Signin Error:', error);
             throw error;
@@ -221,6 +309,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 user: null,
                 session: null,
                 role: null,
+                isLoading: false
             });
         } catch (error) {
             console.error('Signout Error:', error);
