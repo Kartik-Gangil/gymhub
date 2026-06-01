@@ -18,7 +18,7 @@ export default function GymListingScreen() {
     const [search, setSearch] = useState('');
     const [gyms, setGyms] = useState([])
     const { signOut } = useAuthStore();
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
     useEffect(() => {
         loadGym()
     }, [])

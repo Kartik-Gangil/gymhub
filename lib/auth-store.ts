@@ -77,20 +77,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
             );
 
 
-
-            // console.log(
-            //     "STORAGE:",
-            //     storedAuth
-            // );
-
-            // console.log(
-            //     "FETCH STATUS:",
-            //     res.status
-            // );
-
-
-
-
             if (!res.ok) {
 
                 await AsyncStorage.removeItem(
@@ -139,13 +125,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
             role,
             session
         };
+        set({
+            user,
+            role,
+            session,
+            isLoading: false
+        });
 
         await AsyncStorage.setItem(
             STORAGE_KEY,
             JSON.stringify(authData)
         );
 
-        set(authData);
     },
     signUp: async (
         email: string,
@@ -228,6 +219,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 user,
                 role: data.role,
                 session,
+                isLoading: false
             });
 
             return {
@@ -272,7 +264,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 phone: data.user.phone,
                 membership: data.user.membership || []
             };
-
+// console.log({user})
             const session = {
                 access_token: data.token,
             };
@@ -291,6 +283,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 user,
                 role: data.user.role,
                 session,
+                isLoading: false
             });
 
 

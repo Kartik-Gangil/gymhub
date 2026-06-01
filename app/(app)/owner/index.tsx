@@ -24,7 +24,7 @@ const GymListPage = () => {
     const [gyms, setGyms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { signOut } = useAuthStore()
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
     const STORAGE_KEY = '@gymhub_auth';
     const getUserId = async () => {
         try {

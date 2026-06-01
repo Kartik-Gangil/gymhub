@@ -63,7 +63,7 @@ export default function GymDetailsScreen() {
   const [planId, setPlanId] = useState('');
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
-  const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+  const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
   useEffect(() => {
     if (gymId) {
       fetchGymDetail();

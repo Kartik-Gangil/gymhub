@@ -5,7 +5,7 @@ import { useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function OwnerDashboardScreen() {
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
     const { gymId } = useLocalSearchParams();
     const [stats, setStats] = useState({
         totalMembers: 0,

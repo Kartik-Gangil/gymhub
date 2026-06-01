@@ -30,7 +30,7 @@ export default function SubscriptionsScreen() {
     const [visible, setVisible] = useState(false);
     const [Updatevisible, setUpdateVisible] = useState(false);
     const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
     const [planName, setPlanName] = useState('');
     const [price, setPrice] = useState('');
     const [duration, setDuration] = useState('');

@@ -1,52 +1,69 @@
-import { useAuthStore } from "@/lib/auth-store";
-import { useRouter } from "expo-router";
 import { useEffect } from "react";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/lib/auth-store";
 
 export default function Index() {
 
-    const router = useRouter();
+    const router =
+        useRouter();
 
     const {
-        initialize,
-        isLoading,
         user,
-        role
-    } = useAuthStore();
+        role,
+        isLoading
+    } =
+        useAuthStore();
 
     useEffect(() => {
-        initialize();
-    }, []);
 
-    useEffect(() => {
-        // console.log({
-        //     user,
-        //     role,
-        //     isLoading
-        // })
-        if (isLoading) return;
+        // console.log(
+        //     "STATE:",
+        //     {
+        //         user,
+        //         role,
+        //         isLoading
+        //     }
+        // );
 
-        if (!user) {
+        if (
+            isLoading
+        ) return;
 
-            router.replace("/login");
+        if (
+            !user
+        ) {
+
+            router.replace(
+                "/login"
+            );
+
             return;
 
         }
 
-        if (role === "owner") {
+        router.replace(
 
-            router.replace("/(app)/owner");
+            role === "owner"
 
-        } else {
+                ?
 
-            router.replace("/(app)/member");
+                "/(app)/owner"
 
-        }
+                :
+
+                "/(app)/member"
+
+        );
 
     }, [
-        isLoading,
+
         user,
-        role
-    ])
+
+        role,
+
+        isLoading
+
+    ]);
 
     return null;
 

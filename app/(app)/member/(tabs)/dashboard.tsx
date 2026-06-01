@@ -36,7 +36,7 @@ export default function MemberDashboardScreen() {
     const [memberships, setMemberships] = useState<Membership[]>([]);
     const [loading, setLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState('');
-    const Base_url = process.env.EXPO_PUBLIC_BASE_URL || 'https://n8n.creovavteio.in';
+    const Base_url = process.env.EXPO_PUBLIC_BASE_URL;
 
     useEffect(() => {
         if (user) {
